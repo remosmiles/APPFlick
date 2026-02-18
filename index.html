@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostic v4.2</title>
+    <style>
+        :root {
+            --neon-red: #ff003c;
+            --neon-green: #00ff41;
+            --bg-dark: #0a0a0a;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .screen {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: absolute;
+            top: 0; left: 0;
+            transition: all 0.8s ease-in-out;
+        }
+
+        .active { display: flex; }
+
+        /* Der Rotations-Kniff beim Wechsel von Seite 1 zu 2 */
+        .rotate-out { 
+            transform: rotate(720deg) scale(0); 
+            opacity: 0; 
+        }
+
+        /* Styling für Inputs und Buttons */
+        input {
+            background: rgba(0, 255, 65, 0.1);
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 15px;
+            font-size: 1.2rem;
+            outline: none;
+            margin-top: 20px;
+            text-align: center;
+            width: 250px;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 15px 40px;
+            background: var(--neon-green);
+            border: none;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        button:hover { 
+            box-shadow: 0 0 20px var(--neon-green); 
+            transform: scale(1.05); 
+        }
+
+        /* Terminal Style */
+        #terminal { 
+            text-align: left; 
+            width: 85%; 
+            max-width: 500px; 
+            color: var(--neon-green); 
+            font-size: 0.9rem; 
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        /* Error Box */
+        .error-box {
+            border: 4px solid var(--neon-red);
+            padding: 30px;
+            background: rgba(255, 0, 60, 0.1);
+            box-shadow: 0 0 30px var(--neon-red);
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.01); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .btn-red { 
+            background: var(--neon-red); 
+            color: white; 
+            box-shadow: 0 0 15px var(--neon-red);
+        }
+
+        /* Finales Bild Styling */
+        .final-image {
+            max-width: 85%;
+            max-height: 50vh;
+            border: 8px solid white;
+            box-shadow: 0 0 40px rgba(255,255,255,0.2);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .spruch {
+            color: var(--neon-red);
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-size: 1.4rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="p1" class="screen active">
+        <h1 style="color: var(--neon-green);">SYSTEM SCANNER v4.2</h1>
+        <p>Geben Sie Ihren Namen ein, um die Datenbank zu durchsuchen:</p>
+        <input type="text" id="nameInput" placeholder="Vollständiger Name...">
+        <button onclick="toStage2()">ANALYSYIEREN</button>
+    </div>
+
+    <div id="p2" class="screen">
+        <div id="terminal"></div>
+    </div>
+
+    <div id="p3" class="screen">
+        <div class="error-box">
+            <h1 style="color: var(--neon-red); font-size: 2.5rem;">!!! FATAL ERROR !!!</h1>
+            <p>Sicherheitsverletzung bei Datenextraktion festgestellt.</p>
+            <button class="btn-red" onclick="toStage4()">Auswertung anschauen</button>
+        </div>
+    </div>
+
+    <div id="p4" class="screen">
+        <h2 style="color: #ffcc00;">MEDIA RECOVERY ERFOLGREICH</h2>
+        <p>Ein privates Foto wurde in der Cloud rekonstruiert.</p>
+        <button onclick="toStage5()" style="background: white; color: black; font-size: 1.1rem; border: 2px solid black;">
+            Ein Bild von DIR wurde gefunden! (Öffnen)
+        </button>
+    </div>
+
+    <div id="p5" class="screen">
+        <h1 id="userNameDisplay" style="margin-bottom: 15px; color: var(--neon-green);"></h1>
+        <img src="schwein.jpg" alt="Überraschung" class="final-image">
+        <div class="spruch">"WER WIND SÄT, WIRD STURM ERNTEN."</div>
+        <p style="color: #555; margin-top: 20px;">Versuch es erst gar nicht noch einmal.</p>
+    </div>
+
+    <script>
+        // Funktion zum Wechseln der Seiten
+        function show(curr, next, rotate = false) {
+            const currentScreen = document.getElementById('p' + curr);
+            const nextScreen = document.getElementById('p' + next);
+            
+            if(rotate) {
+                currentScreen.classList.add('rotate-out');
+                setTimeout(() => {
+                    currentScreen.classList.remove('active');
+                    nextScreen.classList.add('active');
+                }, 800);
+            } else {
+                currentScreen.classList.remove('active');
+                nextScreen.classList.add('active');
+            }
+        }
+
+        // Von Seite 1 zu Seite 2 (mit Rotation)
+        function toStage2() {
+            const name = document.getElementById('nameInput').value;
+            if(!name) {
+                alert("Bitte gib einen Namen ein!");
+                return;
+            }
+            document.getElementById('userNameDisplay').innerText = "IDENTIFIZIERT: " + name;
+            show(1, 2, true);
+
+            // Terminal Logik
+            const lines = [
+                "> Initialisiere Deep-Scan...",
+                "> Zugriff auf IP-Adresse 172.16.254.1...",
+                "> Durchsuche lokale Verzeichnisse...",
+                "> Browser-Verlauf wird rekonstruiert...",
+                "> Cloud-Backups identifiziert...",
+                "> Extrahiere private Mediendateien...",
+                "> Fortschritt: 45%...",
+                "> Fortschritt: 92%...",
+                "> Fortschritt: 99%...",
+                "> !!! SYSTEM-OVERLOAD DETECTED !!!"
+            ];
+            
+            let i = 0;
+            const term = document.getElementById('terminal');
+            const intv = setInterval(() => {
+                if(i < lines.length) {
+                    term.innerHTML += `<p style="margin: 5px 0;">${lines[i]}</p>`;
+                    i++;
+                } else {
+                    clearInterval(intv);
+                    setTimeout(() => show(2, 3), 1200);
+                }
+            }, 700);
+        }
+
+        // Von Seite 3 zu Seite 4
+        function toStage4() {
+            show(3, 4);
+        }
+
+        // Von Seite 4 zu Seite 5 (Das Finale)
+        function toStage5() {
+            // Optional: Ein kurzer Vibrationsalarm für Handys
+            if (window.navigator.vibrate) {
+                window.navigator.vibrate([100, 50, 100]);
+            }
+            show(4, 5);
+        }
+    </script>
+</body>
+</html>
